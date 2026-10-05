@@ -1,0 +1,556 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/archivo/wdth.css';
+@import '@fontsource/ibm-plex-mono/latin-400.css';
+@import '@fontsource/ibm-plex-mono/latin-ext-400.css';
+@import '@fontsource/ibm-plex-mono/latin-500.css';
+@import '@fontsource/noto-sans-tagalog/tagalog-400.css';
+
+/*
+ * Map-sheet identity: cool chart paper, navy ink, one blue data ramp, and a
+ * single sun-yellow accent reserved for "this is selected".
+ */
+@theme {
+  /* Defaults = the Philippine Blue palette. features/theme/palettes.ts overrides
+     these on <html> for the other palettes; nothing else hard-codes a themed colour. */
+  --color-sea: #edf0f2;
+  --color-panel: #fbfbf9;
+  --color-ink: #0c1e33;
+  --color-ink-2: #44566b;
+  --color-ink-3: #5d6b79;
+  --color-rule: #c3cbd3;
+  --color-rule-soft: #e1e5e9;
+  --color-land: #d3d8dc;
+  --color-land-open: #e2e6e9;
+  --color-nodata: #ddd3bd;
+  --color-sun: #f2b01e;
+  --color-data: #1c5cab;
+  --color-data-soft: #9ec5f4;
+
+  --font-sans: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+}
+
+@layer base {
+  html {
+    background: var(--color-panel);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    margin: 0;
+    min-width: 320px;
+    overflow-x: hidden;
+  }
+  button {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: default;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: var(--color-sun);
+    color: var(--color-ink);
+  }
+}
+
+@layer components {
+  /* Small caps-style labels: condensed, tracked, the voice of the sheet's margins. */
+  .eyebrow {
+    font-size: 0.6875rem;
+    font-stretch: 80%;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+  .display {
+    font-stretch: 72%;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+    line-height: 0.95;
+    text-transform: uppercase;
+  }
+  .figure {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------------------------------------------------------------- map */
+  .map-sheet {
+    background: var(--color-sea);
+  }
+  .map-sheet svg {
+    cursor: grab;
+  }
+  .map-sheet svg:focus-visible {
+    outline-offset: -3px;
+  }
+  .map-sheet svg:active {
+    cursor: grabbing;
+  }
+  .graticule-line {
+    stroke: var(--color-rule);
+    stroke-width: 0.5;
+    stroke-dasharray: 1 5;
+  }
+  .graticule-label {
+    fill: var(--color-ink-3);
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.04em;
+  }
+
+  .map-layer {
+    animation: layer-in 420ms ease-out both;
+  }
+  .map-area {
+    cursor: pointer;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+    transition: fill 320ms ease, stroke 320ms ease;
+  }
+  .map-area-active {
+    stroke: var(--color-sea);
+    stroke-width: 0.8;
+  }
+  .map-area-context {
+    fill: var(--color-land);
+    stroke: var(--color-rule);
+    stroke-width: 0.6;
+  }
+  .map-area-context:hover {
+    fill: color-mix(in srgb, var(--color-land) 88%, var(--color-ink));
+  }
+  .map-area-open {
+    fill: var(--color-land-open);
+    stroke: var(--color-ink-3);
+    stroke-width: 1;
+    pointer-events: none;
+  }
+  .map-area:focus {
+    outline: none;
+  }
+  .map-area:focus-visible {
+    stroke: var(--color-sun);
+    stroke-width: 3;
+    paint-order: fill;
+  }
+  .map-sheet[data-compare] .map-area {
+    cursor: copy;
+  }
+
+  .map-outline-casing,
+  .map-outline-selected,
+  .map-outline-hover,
+  .map-outline-compare {
+    fill: none;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+  }
+  .map-outline-casing {
+    stroke: var(--color-ink);
+    stroke-width: 5.5;
+  }
+  .map-outline-focus {
+    fill: none;
+    stroke: var(--color-ink);
+    stroke-linejoin: round;
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+  }
+  .map-selected-tag rect {
+    fill: var(--color-ink);
+    stroke: var(--color-sun);
+    stroke-width: 1.5;
+  }
+  .map-selected-tag text {
+    fill: var(--color-panel);
+    font-size: 10px;
+    font-stretch: 78%;
+    font-weight: 650;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .map-outline-selected {
+    stroke: var(--color-sun);
+    stroke-width: 2.75;
+  }
+  .map-outline-hover {
+    stroke: var(--color-ink);
+    stroke-width: 1.75;
+  }
+  /* Light casing under a dark line: reads on both the palest and the darkest fills. */
+  .map-outline-compare-casing {
+    fill: none;
+    stroke: var(--color-panel);
+    stroke-linejoin: round;
+    stroke-width: 4.5;
+    vector-effect: non-scaling-stroke;
+  }
+  .map-outline-compare {
+    stroke: var(--color-ink);
+    stroke-width: 1.75;
+  }
+  .map-unscaled {
+    transform-box: view-box;
+    transform-origin: 0 0;
+  }
+  .map-compare-badge {
+    fill: var(--color-ink);
+    stroke: var(--color-panel);
+    stroke-width: 1.5;
+  }
+  .map-compare-badge-text {
+    fill: var(--color-panel);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+  }
+  .map-label {
+    animation: layer-in 300ms ease-out both;
+  }
+  .map-label-name {
+    fill: var(--color-ink);
+    font-size: 10px;
+    font-stretch: 78%;
+    font-weight: 650;
+    letter-spacing: 0.06em;
+    paint-order: stroke;
+    stroke: rgb(255 255 255 / 0.65);
+    stroke-width: 2.5px;
+    text-transform: uppercase;
+  }
+  .map-label-value {
+    fill: var(--color-ink);
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    paint-order: stroke;
+    stroke: rgb(255 255 255 / 0.65);
+    stroke-width: 2.5px;
+  }
+  .map-label[data-dark] text {
+    fill: #fff;
+    stroke: rgb(0 0 0 / 0.4);
+  }
+
+  .map-tooltip {
+    position: absolute;
+    z-index: 10;
+    max-width: 220px;
+    padding: 6px 9px;
+    border: 1px solid var(--color-ink);
+    background: var(--color-panel);
+    font-size: 0.8125rem;
+    line-height: 1.25;
+    pointer-events: none;
+    transform: translateY(-100%);
+  }
+  .map-legend {
+    padding: 9px 12px 8px;
+    border-top: 1px solid var(--color-rule);
+    background: var(--color-panel);
+  }
+  @media (width >= 40rem) {
+    .map-legend {
+      position: absolute;
+      left: 12px;
+      bottom: 12px;
+      width: 300px;
+      padding-inline: 11px;
+      border: 1px solid var(--color-rule);
+      background: rgb(251 251 249 / 0.94);
+    }
+  }
+  .legend-swatch {
+    flex: 1;
+    height: 10px;
+  }
+  .legend-swatch[data-marked] {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 1px;
+    z-index: 1;
+  }
+  .map-controls {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--color-ink);
+    background: var(--color-panel);
+  }
+  .map-controls button {
+    display: grid;
+    min-width: 36px;
+    height: 34px;
+    place-items: center;
+    color: var(--color-ink);
+  }
+  .map-controls button + button {
+    border-top: 1px solid var(--color-rule);
+  }
+  .map-controls button:hover:not(:disabled) {
+    background: var(--color-ink);
+    color: var(--color-panel);
+  }
+  .map-controls button:disabled {
+    color: var(--color-ink-3);
+  }
+  .map-controls button:focus-visible {
+    outline-offset: -3px;
+  }
+  .map-controls-text {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .breadcrumbs {
+    font-size: 0.75rem;
+    font-stretch: 80%;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+  .breadcrumb-link {
+    padding: 2px 0;
+    border-bottom: 1px solid var(--color-ink-3);
+    color: var(--color-ink-2);
+    letter-spacing: inherit;
+    text-transform: inherit;
+  }
+  .breadcrumb-link:hover {
+    border-bottom-color: var(--color-ink);
+    color: var(--color-ink);
+  }
+  .breadcrumb-current {
+    padding: 2px 6px;
+    background: var(--color-ink);
+    color: var(--color-panel);
+  }
+
+  /* -------------------------------------------------------------- panel */
+  .panel-section {
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--color-rule);
+  }
+  .stat-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 0;
+    border-top: 1px solid var(--color-rule-soft);
+    font-size: 0.8125rem;
+  }
+  .stat-row dt {
+    color: var(--color-ink-2);
+  }
+  .stat-row dd {
+    margin: 0;
+    text-align: right;
+  }
+  .unavailable {
+    color: var(--color-ink-3);
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+  }
+  .rank-row {
+    display: grid;
+    width: 100%;
+    grid-template-columns: 2ch minmax(0, 1fr) auto;
+    column-gap: 10px;
+    align-items: baseline;
+    padding: 5px 20px 7px;
+    text-align: left;
+    font-size: 0.8125rem;
+  }
+  .rank-row:hover,
+  .rank-row[data-hovered] {
+    background: var(--color-sea);
+  }
+  .rank-row[data-selected] {
+    background: var(--color-ink);
+    color: var(--color-panel);
+  }
+  .rank-row:focus-visible {
+    outline-offset: -2px;
+  }
+  .rank-bar {
+    grid-column: 2 / 4;
+    height: 3px;
+    margin-top: 4px;
+    background: var(--color-rule-soft);
+  }
+  .rank-bar > span {
+    display: block;
+    height: 100%;
+    background: var(--color-data);
+  }
+  .rank-row[data-selected] .rank-bar {
+    background: rgb(255 255 255 / 0.2);
+  }
+  .rank-row[data-selected] .rank-bar > span {
+    background: var(--color-sun);
+  }
+}
+
+@layer components {
+  /* Baybayin always renders in the bundled font, so no device shows empty boxes. */
+  .baybayin {
+    font-family: 'Noto Sans Tagalog', var(--font-sans);
+    font-feature-settings: normal;
+    letter-spacing: 0.04em;
+  }
+
+  /* ----------------------------------------------------------- boot */
+  .boot {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background-color: var(--color-sea);
+    /* The map sheet's graticule, as a quiet grid. */
+    background-image:
+      linear-gradient(to right, var(--color-rule-soft) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--color-rule-soft) 1px, transparent 1px);
+    background-size: 72px 72px;
+    background-position: center;
+    transition: opacity 280ms ease;
+  }
+  .boot[data-phase='leaving'] {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .boot-inner {
+    display: grid;
+    width: min(100%, 620px);
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(16px, 5vw, 44px);
+  }
+  .boot-map {
+    aspect-ratio: 3 / 5;
+    max-height: 62vh;
+  }
+  .boot-outline {
+    fill: var(--color-data-soft);
+    fill-opacity: 0;
+    stroke: var(--color-ink);
+    stroke-width: 1;
+    stroke-linejoin: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    vector-effect: non-scaling-stroke;
+    animation: boot-draw 700ms ease-out forwards;
+  }
+  .boot-step {
+    color: var(--color-ink-3);
+    transition: color 200ms ease;
+  }
+  .boot-step[data-status='done'] {
+    color: var(--color-ink);
+  }
+  .boot-step[data-status='failed'] {
+    color: var(--color-ink);
+    font-weight: 500;
+  }
+
+  /* ------------------------------------------------- dialogs & menus */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: color-mix(in srgb, var(--color-ink) 28%, transparent);
+  }
+  .sheet {
+    position: fixed;
+    z-index: 50;
+    inset: auto 0 0 0;
+    max-height: 92dvh;
+    overflow-y: auto;
+    border-top: 1px solid var(--color-ink);
+    background: var(--color-panel);
+  }
+  @media (width >= 40rem) {
+    .sheet {
+      inset: 50% auto auto 50%;
+      width: min(560px, calc(100vw - 32px));
+      max-height: min(88dvh, 760px);
+      border: 1px solid var(--color-ink);
+      box-shadow: 6px 6px 0 color-mix(in srgb, var(--color-ink) 14%, transparent);
+      transform: translate(-50%, -50%);
+    }
+  }
+  .popover {
+    z-index: 50;
+    width: min(300px, calc(100vw - 24px));
+    max-height: calc(100dvh - 72px);
+    overflow-y: auto;
+    border: 1px solid var(--color-ink);
+    background: var(--color-panel);
+    box-shadow: 4px 4px 0 color-mix(in srgb, var(--color-ink) 12%, transparent);
+  }
+  .switch {
+    position: relative;
+    flex-shrink: 0;
+    width: 34px;
+    height: 18px;
+    border: 1px solid var(--color-ink);
+    background: var(--color-panel);
+  }
+  .switch::after {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 12px;
+    height: 12px;
+    background: var(--color-ink-3);
+    content: '';
+    transition: transform 140ms ease;
+  }
+  .switch[aria-checked='true'] {
+    background: var(--color-ink);
+  }
+  .switch[aria-checked='true']::after {
+    background: var(--color-panel);
+    transform: translateX(16px);
+  }
+}
+
+@keyframes boot-draw {
+  to {
+    fill-opacity: 0.55;
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes layer-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* No drawing-in: the outline is simply there. */
+  .boot-outline {
+    fill-opacity: 0.55;
+    stroke-dashoffset: 0;
+    animation: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
